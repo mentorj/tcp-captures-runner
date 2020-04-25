@@ -13,15 +13,17 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class CapturesRunner {
+    private final static CaptureListener listener = new CaptureListener();
     public static void main(String[] args) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
         // setup logger
         Logger logger =LoggerFactory.getLogger(CapturesRunner.class);
 
         // starts event bus
         EventBus eventBus = EventBusFactory.getEventBus();
-        eventBus.register(new CaptureListener());
+        eventBus.register(listener);
+        eventBus.register(new DeadEventsListener());
 
-        logger.debug("eventbus started & listener registered");
+        logger.debug("eventbus started & listeners registered");
 
         // get target class name
         // TODO : CHANGE ME - hardcoded
@@ -62,12 +64,16 @@ public class CapturesRunner {
                         logger.debug("fetched capture name ="+ name + " from annotation");
                         eventBus.post(new CaptureStartedEvent(name,itf));
 
+                        logger.debug("Listener is still live ?" + (listener==null?"no":"yes !!!"));
                         logger.info("before invoking capture");
                         Thread.currentThread().sleep(2000);
                         m.invoke(suite, null);
-                        logger.debug("Capture invoked");
+                        logger.debug("Capture invokation finished");
                         TimeUnit.SECONDS.sleep(2);
+                        logger.info("EventBus ? = " + (eventBus==null?"dead":"alive"));
+
                         eventBus.post(new CaptureStoppedEvent());
+                        logger.debug("Listener is still live ?" + (listener==null?"no":"yes !!!"));
                         TimeUnit.SECONDS.sleep(1);
                         logger.info("Handled this annotatiion...Next one ?");
                     } catch (Throwable t){
