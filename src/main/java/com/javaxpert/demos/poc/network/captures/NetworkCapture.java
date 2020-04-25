@@ -13,5 +13,6 @@ import java.lang.annotation.Target;
  */
 public @interface NetworkCapture {
    String captureName() default "capture.pcap";
-   int maxPackets() default 0;
+   String captureItf() default "eth0";
+
 }
