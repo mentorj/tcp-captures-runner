@@ -13,7 +13,8 @@ public class CaptureListener {
     private PcapDumper dumper = null;
     @Subscribe
     public void captureStarted(CaptureStartedEvent evt){
-        logger.debug("starting capture" + evt.getCaptureInterface());
+        logger.debug("received a new CaptureStartedEvent....");
+        logger.debug("starting capture" + evt.getCaptureInterface() + " Name = " + evt.getCaptureName());
         String capture_itf = evt.getCaptureInterface();
         String capture_name = evt.getCaptureName();
         try {
@@ -42,18 +43,18 @@ public class CaptureListener {
                 int maxPackets = 512;
                 handle.loop(maxPackets, listener);
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                logger.error("Error received :" + e.getMessage());
             }
-
         } catch (PcapNativeException | NotOpenException e) {
             e.printStackTrace();
             e.getCause().printStackTrace();
+            logger.error("Encountered error...."+ e.getMessage() + " " + e.getCause());
         }
     }
 
     @Subscribe
     public void captureStopped(CaptureStoppedEvent evt){
-        logger.debug("StoppedEvent received");
+        logger.info("StoppedEvent received");
         if(handle!=null && handle.isOpen() ){
             handle.close();
             logger.trace("handle closed");
@@ -62,5 +63,6 @@ public class CaptureListener {
             dumper.close();
             logger.trace("dumper closed");
         }
+        logger.info("Handle captureStopped event");
     }
 }

@@ -74,8 +74,8 @@ public class CapturesSuite {
         };
 
     }
-    @NetworkCapture(captureName = "test.pcap",captureItf = "docker0")
-    public void basicCapture(){
+    @NetworkCapture(captureName = "basic-consume.pcap",captureItf = "docker0")
+    public void testBasicConsume(){
         logger.info("basic capture launched");
         try {
             // adds a  tempo to let packets capture initialize
@@ -88,9 +88,7 @@ public class CapturesSuite {
             channel.queueBind("testQueue","testExchange","test");
             logger.debug("queue & channel declared");
             channel.basicPublish("testExchange","test",null,"hello world".getBytes());
-            channel.basicConsume("testQueue",deliverCallback, consumerTag -> { });
-//            GetResponse response = channel.basicGet("testQueue",true);
-//            logger.info("got message = " + (response==null?"null":new String(response.getBody())));
+            channel.basicConsume("testQueue",true,deliverCallback, consumerTag -> { });
             Thread.currentThread().sleep(500);
             channel.close();
             conn.close();
@@ -102,6 +100,40 @@ public class CapturesSuite {
             e.printStackTrace();
         }
 
+    }
+
+    @NetworkCapture(captureName = "heartbeat.pcap",captureItf = "docker0")
+    public void testHeartBeat(){
+        try {
+            // adds a  tempo to let packets capture initialize
+            Thread.currentThread().sleep(500);
+            logger.debug("starting capture after a sleep");
+            Connection conn = cf.newConnection();
+            Thread.currentThread().sleep(1000*120);
+            conn.close();
+        } catch (IOException e) {
+            logger.error(e.getMessage());
+        } catch (TimeoutException e) {
+            logger.error(e.getMessage());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @NetworkCapture(captureName = "2-connections-only.pcap")
+    public void testConnectOnly(){
+        try{
+            Thread.currentThread().sleep(1000);
+            Connection  conn1 = cf.newConnection();
+            Connection conn2 = cf.newConnection();
+            Thread.currentThread().sleep(2000);
+            conn1.close();
+            conn2.close();
+
+        }
+        catch (IOException | InterruptedException | TimeoutException e) {
+            e.printStackTrace();
+        }
     }
 
     @BeforeCapture
