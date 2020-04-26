@@ -77,6 +77,7 @@ public class CapturesSuite {
     }
     //@NetworkCapture(captureName = "basic-consume-complete.pcap",captureItf = "docker0")
     public void testBasicConsume(){
+        logger.info("starting a new capture from thread =" + Thread.currentThread().getId());
         logger.info("basic capture launched");
         try {
             // adds a  tempo to let packets capture initialize
@@ -105,6 +106,7 @@ public class CapturesSuite {
 
     //@NetworkCapture(captureName = "heartbeat.pcap",captureItf = "docker0")
     public void testHeartBeat(){
+        logger.info("starting a new capture from thread =" + Thread.currentThread().getId());
         try {
             // adds a  tempo to let packets capture initialize
             Thread.currentThread().sleep(500);
@@ -120,8 +122,9 @@ public class CapturesSuite {
             e.printStackTrace();
         }
     }
-    @NetworkCapture(captureName = "multiple-channels-and-connections.pcap",captureItf = "docker0")
+    @NetworkCapture(captureName = "2-connections-only.pcap",captureItf = "docker0")
     public void testConnectOnly(){
+        logger.info("starting a new capture from thread =" + Thread.currentThread().getId());
         try{
             Thread.currentThread().sleep(1000);
             Connection  conn1 = cf.newConnection();
@@ -137,13 +140,13 @@ public class CapturesSuite {
 
         }
         catch (IOException | InterruptedException | TimeoutException e) {
-            e.printStackTrace();
+            logger.error(e.toString());
         }
     }
 
     @BeforeCapture
     public void setupCapture(){
         logger.debug("this is the before capture method");
-
+        logger.info("Nothing to be done here....");
     }
 }
