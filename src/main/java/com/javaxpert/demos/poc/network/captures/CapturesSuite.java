@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class CapturesSuite {
@@ -74,7 +75,7 @@ public class CapturesSuite {
         };
 
     }
-    @NetworkCapture(captureName = "basic-consume.pcap",captureItf = "docker0")
+    //@NetworkCapture(captureName = "basic-consume-complete.pcap",captureItf = "docker0")
     public void testBasicConsume(){
         logger.info("basic capture launched");
         try {
@@ -102,7 +103,7 @@ public class CapturesSuite {
 
     }
 
-    @NetworkCapture(captureName = "heartbeat.pcap",captureItf = "docker0")
+    //@NetworkCapture(captureName = "heartbeat.pcap",captureItf = "docker0")
     public void testHeartBeat(){
         try {
             // adds a  tempo to let packets capture initialize
@@ -119,14 +120,18 @@ public class CapturesSuite {
             e.printStackTrace();
         }
     }
-
-    @NetworkCapture(captureName = "2-connections-only.pcap")
+    @NetworkCapture(captureName = "multiple-channels-and-connections.pcap",captureItf = "docker0")
     public void testConnectOnly(){
         try{
             Thread.currentThread().sleep(1000);
             Connection  conn1 = cf.newConnection();
             Connection conn2 = cf.newConnection();
             Thread.currentThread().sleep(2000);
+            for(int i=0;i<5;i++){
+                Channel c = conn1.createChannel();
+                TimeUnit.SECONDS.sleep(1);
+                c.close();
+            }
             conn1.close();
             conn2.close();
 
