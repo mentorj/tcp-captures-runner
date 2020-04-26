@@ -13,7 +13,7 @@ public class CaptureListener {
     private PcapDumper dumper = null;
     @Subscribe
     public void captureStarted(CaptureStartedEvent evt){
-        logger.debug("received a new CaptureStartedEvent....");
+        logger.debug("received a new CaptureStartedEvent from thread =" + Thread.currentThread().getId());
         logger.debug("starting capture" + evt.getCaptureInterface() + " Name = " + evt.getCaptureName());
         String capture_itf = evt.getCaptureInterface();
         String capture_name = evt.getCaptureName();
@@ -54,7 +54,7 @@ public class CaptureListener {
 
     @Subscribe
     public void captureStopped(CaptureStoppedEvent evt){
-        logger.info("StoppedEvent received");
+        logger.info("StoppedEvent received from thread = " + Thread.currentThread().getId());
         if(handle!=null && handle.isOpen() ){
             handle.close();
             logger.trace("handle closed");

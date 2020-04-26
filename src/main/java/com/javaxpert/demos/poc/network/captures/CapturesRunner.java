@@ -10,6 +10,9 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 public class CapturesRunner {
@@ -18,9 +21,10 @@ public class CapturesRunner {
         Logger logger =LoggerFactory.getLogger(CapturesRunner.class);
 
         // starts event bus
-        EventBus eventBus = EventBusFactory.getEventBus();
-        eventBus.register(new CaptureListener());
-
+        //EventBus eventBus = EventBusFactory.getEventBus();
+        //eventBus.register(new CaptureListener());
+        //eventBus.register(new DeadEventsListener());
+        final CaptureListener listener = new CaptureListener();
         logger.debug("eventbus started & listener registered");
 
         // get target class name
@@ -37,6 +41,8 @@ public class CapturesRunner {
                 .findFirst().get();
         logger.debug("fetched the before method");
 
+        // @TODO : to be tuned later
+        ExecutorService service = Executors.newFixedThreadPool(4);
         // find the captures & invoke them
         Arrays.stream(methods)
                 .filter(m ->
@@ -60,15 +66,38 @@ public class CapturesRunner {
                         String name =(String)capture_name_method.invoke(annotation,null);
                         String itf =(String)capture_itf_method.invoke(annotation,null);
                         logger.debug("fetched capture name ="+ name + " from annotation");
-                        eventBus.post(new CaptureStartedEvent(name,itf));
 
+                        Future<String> postEventFuture = service.submit(() -> {
+                            listener.captureStarted(new CaptureStartedEvent(name,itf));
+                            return "ok";});
+                        //eventBus.post(new CaptureStartedEvent(name,itf));
+                        while(!postEventFuture.isDone()){
+                            logger.debug("posting event CaptureStarted" );
+                            TimeUnit.MILLISECONDS.sleep(500);
+                        }
+                        postEventFuture.get();
+                        postEventFuture.cancel(true);
                         logger.info("before invoking capture");
                         Thread.currentThread().sleep(2000);
-                        m.invoke(suite, null);
-                        logger.debug("Capture invoked");
+                        Future<String> invokeScenarioFuture = service.submit( ()->  {m.invoke(suite, null);return "ok";});
+                        while(!invokeScenarioFuture.isDone()){
+                            TimeUnit.SECONDS.sleep(4);
+                            logger.debug("waiting for current scenario to finish");
+                        }
+
+                        logger.debug("Scenario finished ....Capture invoked");
                         TimeUnit.SECONDS.sleep(2);
-                        eventBus.post(new CaptureStoppedEvent());
-                        TimeUnit.SECONDS.sleep(1);
+                        postEventFuture = service.submit(() -> {listener.captureStopped(new CaptureStoppedEvent());
+                            return "ok";});
+                        //eventBus.post(new CaptureStartedEvent(name,itf));
+                        while(!postEventFuture.isDone()){
+                            logger.debug("posting event CaptureSTopped");
+                            TimeUnit.MILLISECONDS.sleep(200);
+                        }
+                        postEventFuture.get();
+                        postEventFuture.cancel(true);
+                        //eventBus.post(new CaptureStoppedEvent());
+
                         logger.info("Handled this annotatiion...Next one ?");
                     } catch (Throwable t){
                         t.printStackTrace();
