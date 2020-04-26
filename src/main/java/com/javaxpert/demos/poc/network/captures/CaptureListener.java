@@ -85,7 +85,7 @@ public class CaptureListener {
                 try {
                     handle.breakLoop();
                     dumper.flush();
-                    
+
                     dumper.close();
                     logger.debug("dumper closed");
                 } catch (PcapNativeException|NotOpenException e) {
