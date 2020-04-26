@@ -22,16 +22,17 @@ public class CaptureListener {
     public void captureStarted(CaptureStartedEvent evt){
         logger.debug("received a new CaptureStartedEvent from thread =" + Thread.currentThread().getId());
         logger.debug("starting capture" + evt.getCaptureInterface() + " Name = " + evt.getCaptureName());
-        if(handle!=null && handle.isOpen()){
-            logger.debug("handle is not null");
-            try {
-                handle.breakLoop();
-                dumper.flush();
-            } catch (NotOpenException | PcapNativeException e) {
-                logger.error(e.getMessage());
-            }
-
-        }
+//        if(handle!=null && handle.isOpen()){
+//            logger.debug("handle is not null");
+//            try {
+//                handle.
+//                handle.breakLoop();
+//                dumper.flush();
+//            } catch (NotOpenException | PcapNativeException e) {
+//                logger.error(e.getMessage());
+//            }
+//
+//        }
 
         final String capture_itf = evt.getCaptureInterface();
         final String capture_name = evt.getCaptureName();
@@ -80,22 +81,16 @@ public class CaptureListener {
         logger.info("StoppedEvent received from thread = " + Thread.currentThread().getId());
         service.submit(() -> {
             logger.debug("Handling stopped event from Eexecutor Thread ="+ Thread.currentThread().getId());
-            if (handle != null && handle.isOpen()) {
-                handle.close();
-
-                logger.debug("handle closed");
-            }
             if (dumper != null && dumper.isOpen()) {
                 try {
+                    handle.breakLoop();
                     dumper.flush();
+                    
                     dumper.close();
                     logger.debug("dumper closed");
-                } catch (PcapNativeException e) {
-                    e.printStackTrace();
-                } catch (NotOpenException e) {
-                    e.printStackTrace();
+                } catch (PcapNativeException|NotOpenException e) {
+                    logger.error(e.toString());
                 }
-
             }
             logger.debug("stopping capture packets thread, isFinished? =" + currentTask.isDone());
             currentTask.cancel(true);

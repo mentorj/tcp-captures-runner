@@ -86,13 +86,13 @@ public class CapturesRunner {
                         }
 
                         logger.debug("Scenario finished ....Capture invoked");
-                        TimeUnit.SECONDS.sleep(2);
+                        //TimeUnit.SECONDS.sleep(2);
                         postEventFuture = service.submit(() -> {listener.captureStopped(new CaptureStoppedEvent());
                             return "ok";});
                         //eventBus.post(new CaptureStartedEvent(name,itf));
                         while(!postEventFuture.isDone()){
                             logger.debug("posting event CaptureSTopped");
-                            TimeUnit.MILLISECONDS.sleep(200);
+                            TimeUnit.MILLISECONDS.sleep(500);
                         }
                         postEventFuture.get();
                         postEventFuture.cancel(true);
