@@ -122,7 +122,7 @@ public class CapturesSuite {
         }
     }
 
-    @NetworkCapture(captureName = "2-connections-only.pcap")
+    @NetworkCapture(captureName = "2-connections-only.pcap",captureItf = "docker0")
     public void testConnectOnly(){
         logger.info("starting a new capture from thread =" + Thread.currentThread().getId());
         try{
@@ -135,13 +135,13 @@ public class CapturesSuite {
 
         }
         catch (IOException | InterruptedException | TimeoutException e) {
-            e.printStackTrace();
+            logger.error(e.toString());
         }
     }
 
     @BeforeCapture
     public void setupCapture(){
         logger.debug("this is the before capture method");
-
+        logger.info("Nothing to be done here....");
     }
 }
