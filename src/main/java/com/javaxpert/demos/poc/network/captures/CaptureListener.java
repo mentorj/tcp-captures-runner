@@ -1,6 +1,5 @@
 package com.javaxpert.demos.poc.network.captures;
 
-import com.google.common.eventbus.Subscribe;
 import org.pcap4j.core.*;
 import org.pcap4j.core.PcapNetworkInterface.PromiscuousMode;
 import org.pcap4j.packet.Packet;
@@ -16,10 +15,10 @@ public class CaptureListener {
     private static Logger logger = LoggerFactory.getLogger(CaptureListener.class);
     private PcapHandle handle = null;
     private PcapDumper dumper = null;
-    private     ExecutorService service= Executors.newFixedThreadPool(2);
-    private volatile Future  currentTask;
+    private ExecutorService service = Executors.newFixedThreadPool(2);
+    private volatile Future currentTask;
 
-    public void captureStarted(CaptureStartedEvent evt){
+    public void captureStarted(CaptureStartedEvent evt) {
         logger.debug("received a new CaptureStartedEvent from thread =" + Thread.currentThread().getId());
         logger.debug("starting capture" + evt.getCaptureInterface() + " Name = " + evt.getCaptureName());
 //        if(handle!=null && handle.isOpen()){
@@ -37,9 +36,9 @@ public class CaptureListener {
         final String capture_itf = evt.getCaptureInterface();
         final String capture_name = evt.getCaptureName();
 
-        currentTask = service.submit( () -> {
+        currentTask = service.submit(() -> {
             try {
-                logger.debug("Executing packets capture inside thread = "+ Thread.currentThread().getId());
+                logger.debug("Executing packets capture inside thread = " + Thread.currentThread().getId());
                 PcapNetworkInterface network_interface = Pcaps.getDevByName(capture_itf);
                 PcapNetworkInterface.PromiscuousMode mode;
 
@@ -77,10 +76,11 @@ public class CaptureListener {
         });
 
     }
-    public void captureStopped(CaptureStoppedEvent evt){
+
+    public void captureStopped(CaptureStoppedEvent evt) {
         logger.info("StoppedEvent received from thread = " + Thread.currentThread().getId());
         service.submit(() -> {
-            logger.debug("Handling stopped event from Eexecutor Thread ="+ Thread.currentThread().getId());
+            logger.debug("Handling stopped event from Eexecutor Thread =" + Thread.currentThread().getId());
             if (dumper != null && dumper.isOpen()) {
                 try {
                     handle.breakLoop();
@@ -88,13 +88,13 @@ public class CaptureListener {
 
                     dumper.close();
                     logger.debug("dumper closed");
-                } catch (PcapNativeException|NotOpenException e) {
+                } catch (PcapNativeException | NotOpenException e) {
                     logger.error(e.toString());
                 }
             }
             logger.debug("stopping capture packets thread, isFinished? =" + currentTask.isDone());
             currentTask.cancel(true);
-            while(!currentTask.isDone()){
+            while (!currentTask.isDone()) {
                 try {
                     TimeUnit.MILLISECONDS.sleep(100);
                 } catch (InterruptedException e) {
